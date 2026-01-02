@@ -239,7 +239,8 @@ get_app_name(){
     hooks_py_path=$(find "$app_dir" -maxdepth 2 -type f -name hooks.py)
 
     # Extract the app name from the hooks.py file
-    APP_NAME=$(awk -F'"' '/app_name/{print $2}' "$hooks_py_path" || exit 0)
+    # Match lines that start with 'app_name' (ignoring leading whitespace) followed by = and quotes
+    APP_NAME=$(awk -F'"' '/^[[:space:]]*app_name[[:space:]]*=/{print $2; exit}' "$hooks_py_path" || exit 0)
 
     if ! [[ "${APP_NAME:-}" ]]; then
         # If the app name is not found, use app name from basename of the app dir
