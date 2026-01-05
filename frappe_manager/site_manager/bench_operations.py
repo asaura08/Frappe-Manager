@@ -160,7 +160,6 @@ class BenchOperations:
                 content = '\n'.join(output.combined).strip()
                 
                 if 'PREBAKE_APPS=' in content:
-                    import re
                     apps_match = re.search(r'PREBAKE_APPS=["\']?([^"\'\n]+)["\']?', content)
                     if apps_match:
                         apps_str = apps_match.group(1)
