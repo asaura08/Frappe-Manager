@@ -47,7 +47,8 @@ class BenchOperations:
 
         self.is_required_services_available()
 
-        self.bench_install_apps(self.bench.bench_config.apps_list)
+        already_installed_apps = self.get_prebaked_apps_from_container()
+        self.bench_install_apps(self.bench.bench_config.apps_list, already_installed_apps=already_installed_apps)
 
         self.container_run(
             "rm -rf /workspace/frappe-bench/archived",
@@ -140,6 +141,44 @@ class BenchOperations:
                 raise_exception_obj.set_output(e.output)
                 raise raise_exception_obj
             raise e
+
+    def get_prebaked_apps_from_container(self) -> Dict:
+        """
+        Read the actually prebaked apps from /prebake_info file in the container.
+        Returns a dictionary with app names as keys and branches as values.
+        """
+        try:
+            output = self.container_run(
+                "cat /prebake_info 2>/dev/null || echo ''",
+                raise_exception_obj=None,
+                capture_output=True,
+                workdir="/workspace"
+            )
+            
+            prebake_info = {}
+            if output and output.combined:
+                content = '\n'.join(output.combined).strip()
+                
+                if 'PREBAKE_APPS=' in content:
+                    import re
+                    apps_match = re.search(r'PREBAKE_APPS=["\']?([^"\'\n]+)["\']?', content)
+                    if apps_match:
+                        apps_str = apps_match.group(1)
+                        for app_entry in apps_str.split(','):
+                            app_entry = app_entry.strip()
+                            if ':' in app_entry:
+                                app_name, branch = app_entry.split(':', 1)
+                                prebake_info[app_name.strip()] = branch.strip()
+                
+                if 'PREBAKE_FRAPPE_BRANCH=' in content:
+                    frappe_match = re.search(r'PREBAKE_FRAPPE_BRANCH=["\']?([^"\'\n]+)["\']?', content)
+                    if frappe_match:
+                        frappe_branch = frappe_match.group(1)
+                        prebake_info['frappe'] = frappe_branch.strip()
+            
+            return prebake_info if prebake_info else STABLE_APP_BRANCH_MAPPING_LIST
+        except Exception:
+            return STABLE_APP_BRANCH_MAPPING_LIST
 
     def change_frappeverse_prebaked_app_branch(self, app: str, branch: str):
         richprint.change_head(f"Configuring {app} app's branch -> {branch}")

@@ -111,6 +111,13 @@ class BenchWorkers:
             self.compose_project.compose_file_manager.set_root_networks_name(
                 'site-network', get_container_name_prefix(self.bench.name)
             )
+            
+            if hasattr(self.bench, 'bench_config') and self.bench.bench_config.frappe_image:
+                frappe_image = self.bench.bench_config.frappe_image
+                richprint.print(f"Using custom frappe image for workers: {frappe_image}")
+                for worker in workers_expected_service_names:
+                    self.compose_project.compose_file_manager.set_image(worker, frappe_image)
+            
             self.compose_project.compose_file_manager.write_to_file()
             richprint.print("Workers configuration generated successfully")
             return True

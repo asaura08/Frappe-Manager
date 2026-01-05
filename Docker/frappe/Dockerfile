@@ -4,9 +4,9 @@ LABEL author=rtCamp
 LABEL org.opencontainers.image.source=https://github.com/rtcamp/Frappe-Manager
 
 ARG PYTHON_VERSIONS='3.12.0'
-ARG PYENV_GIT_VERSION='2.6.7'
+ARG PYENV_GIT_VERSION='2.6.17'
 ARG PYENV_ROOT='/workspace/.pyenv'
-ARG NVM_VERSION='0.39.0'
+ARG NVM_VERSION='0.40.3'
 ARG NVM_DIR='/workspace/.nvm'
 ARG NODE_VERSIONS='22.18.0'
 ARG PREBAKE_APPS='erpnext:version-15,hrms:version-15'
@@ -170,16 +170,14 @@ COPY --chown=frappe:frappe --chmod=0755 ./bench-wrapper.sh /opt/user/.bin/bench
 
 COPY --chmod=0755 ./prebake.sh /scripts/
 
-RUN ls -lah /workspace && /scripts/prebake.sh && mv /workspace/frappe-bench/apps/* /workspace/
+RUN ls -lah /workspace && /scripts/prebake.sh
 
 FROM ubuntu:22.04 AS prebake_image
 
 WORKDIR /workspace
 
+# Copy the entire frappe-bench with all apps inside
 COPY --from=prebake --chown=frappe:frappe /workspace/frappe-bench /workspace/frappe-bench
-COPY --from=prebake --chown=frappe:frappe /workspace/frappe /workspace/frappe-bench/apps/frappe
-COPY --from=prebake --chown=frappe:frappe /workspace/erpnext /workspace/frappe-bench/apps/erpnext
-COPY --from=prebake --chown=frappe:frappe /workspace/hrms /workspace/frappe-bench/apps/hrms
 
 COPY --from=prebake --chown=frappe:frappe /workspace/.pyenv /workspace/.pyenv
 COPY --from=prebake --chown=frappe:frappe /workspace/.nvm /workspace/.nvm

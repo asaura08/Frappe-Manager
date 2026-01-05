@@ -312,6 +312,10 @@ class Bench:
                 gid = user[container_name]["gid"]
                 self.compose_project.compose_file_manager.set_user(container_name, uid, gid)
 
+        if "images" in inputs.keys():
+            images: dict = inputs["images"]
+            self.compose_project.compose_file_manager.set_all_images(images)
+
         self.compose_project.compose_file_manager.set_network_alias("nginx", "site-network", [self.name])
         self.compose_project.compose_file_manager.set_container_names(get_container_name_prefix(self.name))
         self.compose_project.compose_file_manager.set_root_volumes_names(get_container_name_prefix(self.name))
@@ -351,13 +355,13 @@ class Bench:
         richprint.change_head("Creating required directories")
 
         frappe_image: str = self.compose_project.compose_file_manager.yml["services"]["frappe"]["image"]
-        frappe_image = frappe_image.replace('-frappe', '-prebake')
+        workspace_copy_image = frappe_image.replace('-frappe', '-prebake')
 
         workspace_path = self.path / "workspace"
         workspace_path_abs = str(workspace_path.absolute())
 
         host_run_cp(
-            frappe_image,
+            workspace_copy_image,
             source="/workspace",
             destination=workspace_path_abs,
             docker=self.compose_project.docker,

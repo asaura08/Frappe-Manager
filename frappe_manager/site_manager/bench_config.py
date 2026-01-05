@@ -48,6 +48,7 @@ class BenchConfig(BaseModel):
     apps_list: List[Dict[str, Optional[str]]] = Field(default=[], description="List of apps")
     userid: int = Field(default_factory=os.getuid, description="The user ID of the current process")
     usergroup: int = Field(default_factory=os.getgid, description="The group ID of the current process")
+    frappe_image: Optional[str] = Field(None, description="Custom Docker image for frappe service")
     admin_tools_username: Optional[str] = Field(None, description="Username for admin tools basic auth")
     admin_tools_password: Optional[str] = Field(None, description="Password for admin tools basic auth")
 
@@ -74,6 +75,7 @@ class BenchConfig(BaseModel):
             'apps_list',
             'frappe_branch',
             'admin_pass',
+            'frappe_image',
         }
 
         if ssl_toml_doc is None:
@@ -216,4 +218,20 @@ class BenchConfig(BaseModel):
             "environment": environment,
             "user": users,
         }
+        
+        if self.frappe_image:
+            # Parse image name and tag
+            if ":" in self.frappe_image:
+                image_name, image_tag = self.frappe_image.split(":", 1)
+            else:
+                image_name = self.frappe_image
+                image_tag = "latest"
+            
+            template_inputs["images"] = {
+                "frappe": {"name": image_name, "tag": image_tag},
+                "socketio": {"name": image_name, "tag": image_tag},
+                "schedule": {"name": image_name, "tag": image_tag},
+                "worker": {"name": image_name, "tag": image_tag},
+            }
+        
         return template_inputs

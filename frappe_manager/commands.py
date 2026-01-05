@@ -181,6 +181,10 @@ def create(
     ssl: Annotated[
         SUPPORTED_SSL_TYPES, typer.Option(help="Enable https", show_default=True)
     ] = SUPPORTED_SSL_TYPES.none,
+    frappe_image: Annotated[
+        Optional[str],
+        typer.Option(help="Custom Docker image for frappe service (e.g., frappe-manager-local-frappe:v0.18.0)", show_default=False),
+    ] = None,
 ):
     # TODO Create markdown table for the below help
     """
@@ -248,6 +252,7 @@ def create(
         environment_type=environment,
         root_path=bench_config_path,
         ssl=ssl_certificate,
+        frappe_image=frappe_image,
     )
 
     compose_path = bench_path / 'docker-compose.yml'
