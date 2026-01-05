@@ -26,7 +26,10 @@ fi
 images='frappe'
 
 for image in ${images}; do
-    IMAGE_TAG=$(jq -rc ".${image}" images-tag.json || exit 0)
+    if ! IMAGE_TAG=$(jq -rc ".${image}" images-tag.json); then
+        echo "Warning: Failed to read image tag for '${image}' from images-tag.json" >&2
+        continue
+    fi
 
     if [[ "${IMAGE_TAG:-}" ]]; then
         CONTEXT_DIR="${image}/."
