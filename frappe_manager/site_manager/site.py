@@ -1205,15 +1205,15 @@ class Bench:
                 capture_output=True
             )
             
-            output_text = ''.join([line.decode() if isinstance(line, bytes) else line for line in output.stdout])
+            output_text = ''.join(output.stdout)
             
             if 'Administrator' in output_text:
                 return True
             
-            return None
+            return False
         
         except DockerException as e:
-            error_text = ''.join([line.decode() if isinstance(line, bytes) else line for line in e.output.stdout])
+            error_text = ''.join(output.stdout)
             
             if 'Incorrect User or Password' in error_text or 'AuthenticationError' in error_text:
                 return False
